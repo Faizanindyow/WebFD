@@ -1,0 +1,925 @@
+/* public/style.css */
+
+/* --- Variabel Warna --- */
+:root {
+    --primary-color: #4A90E2; /* Biru terang untuk aksen */
+    --primary-dark: #357ABD;
+    --secondary-bg: #E6F0F8; /* Biru sangat muda untuk latar belakang kartu/konten */
+    --text-primary: #2C3E50; /* Abu gelap kebiruan */
+    --text-secondary: #607D8B; /* Abu kebiruan */
+    --bg-global: #F8FBFD; /* Putih kebiruan sangat terang */
+    --border-color: #DDEBF5; /* Warna border yang lebih lembut */
+    --shadow-light: rgba(0, 0, 0, 0.05);
+    --shadow-medium: rgba(0, 0, 0, 0.1);
+
+    /* Status Colors */
+    --status-success: #5cb85c;
+    --status-warning: #f0ad4e;
+    --status-danger: #d9534f;
+    --status-info: #5bc0de;
+    --status-neutral: #607D8B; /* Grey */
+}
+
+/* --- General Body & Container Styling --- */
+body {
+    font-family: 'Poppins', sans-serif; /* Menggunakan Poppins */
+    background-color: var(--bg-global);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    min-height: 100vh;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+/* --- Login Page Specific Styling --- */
+.login-container {
+    background-color: #ffffff;
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px var(--shadow-medium);
+    width: 450px;
+    max-width: 95%;
+    text-align: center;
+    margin: auto;
+    border: 1px solid var(--border-color);
+}
+
+.login-container h2 {
+    margin-bottom: 35px;
+    color: var(--primary-color);
+    font-size: 2.5em;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.input-group {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.input-group input[type="email"],
+.input-group input[type="password"] {
+    width: calc(100% - 28px); /* Adjusted for padding and border */
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    background-color: #fcfdff;
+}
+
+.input-group input[type="email"]:focus,
+.input-group input[type="password"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15);
+    outline: none;
+    background-color: #ffffff;
+}
+
+/* --- General Button Styling --- */
+button {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 14px 30px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.05em;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    width: 100%;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
+}
+
+button:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+}
+
+button:disabled {
+    background-color: #A0B9DE;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.error-message {
+    color: var(--status-danger);
+    background-color: #fdeded;
+    border: 1px solid #f2c7c7;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 25px;
+    font-size: 0.9em;
+    display: none;
+    font-weight: 500;
+}
+
+.loading-message {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+    font-size: 1.1em;
+}
+.loading-message i {
+    margin-right: 10px;
+    color: var(--primary-color);
+}
+
+
+/* --- Dashboard Layout Styling --- */
+.dashboard-layout {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background-color: var(--text-primary); /* Darker sidebar background */
+    color: #ECF0F1;
+    padding: 25px 0;
+    box-shadow: 3px 0 15px var(--shadow-medium);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 2; /* Ensure sidebar is above content */
+}
+
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 0 25px;
+}
+.sidebar-header h2 {
+    color: #ECF0F1;
+    font-size: 2em;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sidebar-header h2 i {
+    margin-right: 12px;
+    font-size: 1.2em;
+    color: var(--primary-color);
+}
+
+.sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar nav ul li {
+    margin-bottom: 8px;
+}
+
+.sidebar nav ul li a {
+    display: flex;
+    align-items: center;
+    padding: 18px 30px;
+    color: #ECF0F1;
+    text-decoration: none;
+    font-size: 1.05em;
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease, border-left 0.3s ease;
+    position: relative; /* For the active indicator */
+}
+
+.sidebar nav ul li a i {
+    margin-right: 15px;
+    font-size: 1.1em;
+}
+
+.sidebar nav ul li a:hover {
+    background-color: rgba(74, 144, 226, 0.1); /* Very subtle blue hover */
+    color: var(--primary-color);
+}
+.sidebar nav ul li a.active {
+    background-color: rgba(74, 144, 226, 0.15); /* More prominent active state */
+    color: var(--primary-color);
+    font-weight: 600;
+}
+.sidebar nav ul li a.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background-color: var(--primary-color);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.sidebar-footer {
+    text-align: center;
+    padding: 20px 25px;
+    font-size: 0.85em;
+    color: rgba(236, 240, 241, 0.7);
+    margin-top: auto; /* Push to bottom */
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+
+.main-content {
+    flex-grow: 1;
+    padding: 40px;
+    background-color: var(--bg-global);
+    overflow-y: auto; /* Enable scrolling for main content */
+}
+
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 20px 30px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px var(--shadow-light);
+    border: 1px solid var(--border-color);
+}
+
+.header-bar h1 {
+    margin: 0;
+    font-size: 2.8em;
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: -0.8px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-email {
+    font-size: 1.1em;
+    color: var(--primary-dark);
+    font-weight: 600;
+}
+
+.logout-button {
+    background-color: var(--status-danger);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.95em;
+    width: auto;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+/* --- Content Section Styling --- */
+.content-section {
+    background-color: #ffffff;
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px var(--shadow-light);
+    margin-bottom: 40px;
+    border: 1px solid var(--border-color);
+}
+
+.content-section h2 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: var(--text-primary);
+    font-size: 2.2em;
+    font-weight: 600;
+    border-bottom: 3px solid var(--primary-color);
+    padding-bottom: 15px;
+    display: inline-block;
+    letter-spacing: -0.5px;
+}
+
+/* --- Table Styling --- */
+.table-responsive {
+    overflow-x: auto; /* Make tables scrollable on small screens */
+    border-radius: 10px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05); /* Subtle shadow for the whole table container */
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 0; /* No top margin here as it's within content-section */
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden; /* Ensures rounded corners */
+    min-width: 800px; /* Minimum width for larger tables to prevent squishing */
+}
+
+th, td {
+    border: 1px solid var(--border-color);
+    padding: 15px 20px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+th {
+    background-color: var(--secondary-bg);
+    color: var(--text-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+th:first-child { border-top-left-radius: 10px; }
+th:last-child { border-top-right-radius: 10px; }
+tr:last-child td:first-child { border-bottom-left-radius: 10px; }
+tr:last-child td:last-child { border-bottom-right-radius: 10px; }
+
+
+td {
+    font-size: 0.95em;
+    color: var(--text-secondary);
+}
+
+tr:nth-child(even) {
+    background-color: #FBFDFF;
+}
+
+tr:hover {
+    background-color: #EBF3FA;
+}
+
+.view-image-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+.view-image-link:hover {
+    text-decoration: underline;
+}
+
+/* --- Status Badges (for Tables) --- */
+.status-active, .status-done, .status-pending, .status-cancelled {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85em;
+    display: inline-block;
+    letter-spacing: 0.2px;
+}
+
+.status-active, .status-done {
+    background-color: #EAF7ED;
+    color: var(--status-success);
+}
+.status-pending {
+    background-color: #FFF8E6;
+    color: var(--status-warning);
+}
+.status-cancelled {
+    background-color: #FDECEC;
+    color: var(--status-danger);
+}
+
+
+/* --- Action Buttons in Table --- */
+.edit-btn, .save-btn, .cancel-btn, .delete-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    box-shadow: none;
+    width: auto;
+    margin-right: 8px;
+    margin-bottom: 5px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex; /* Agar ikon dan teks sejajar */
+    align-items: center;
+    gap: 5px;
+}
+
+.edit-btn { background-color: var(--status-info); }
+.edit-btn:hover { background-color: #4BB5CE; transform: translateY(-1px); }
+
+.save-btn { background-color: var(--status-success); }
+.save-btn:hover { background-color: #449D44; transform: translateY(-1px); }
+
+.cancel-btn { background-color: var(--status-neutral); }
+.cancel-btn:hover { background-color: #556B7B; transform: translateY(-1px); }
+
+.delete-btn { background-color: var(--status-danger); }
+.delete-btn:hover { background-color: #C13333; transform: translateY(-1px); }
+
+
+/* Edit mode specific styling for inputs/selects in tables*/
+.edit-mode input, .edit-mode select {
+    width: calc(100% - 18px);
+    padding: 8px;
+    border: 1px solid var(--primary-color);
+    border-radius: 6px;
+    font-size: 0.9em;
+    background-color: #faffff;
+    transition: border-color 0.2s ease;
+}
+.edit-mode input:focus, .edit-mode select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+
+/* --- Parking Map Specific Styling --- */
+.parking-map-legend {
+    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 15px 25px;
+    background-color: var(--secondary-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95em;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.legend-color-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Warna untuk legenda */
+.legend-item.slot-kosong .legend-color-box { background-color: var(--status-success); }
+.legend-item.slot-terisi .legend-color-box { background-color: var(--status-danger); }
+.legend-item.slot-rusak .legend-color-box { background-color: var(--status-warning); }
+.legend-item.slot-tidak-ada .legend-color-box { background-color: var(--status-neutral); }
+
+
+.parking-map-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Space between rows */
+    border: 2px solid var(--border-color);
+    padding: 30px;
+    border-radius: 15px;
+    background-color: #ffffff;
+    box-shadow: 0 5px 20px var(--shadow-light);
+}
+
+.parking-row {
+    display: flex;
+    gap: 20px; /* Space between slots in a row */
+    justify-content: center; /* Center slots */
+    padding: 15px;
+    background-color: #F8FBFD; /* Light background for rows */
+    border-radius: 10px;
+    border: 1px dashed var(--border-color);
+    position: relative; /* For the "road" feel */
+}
+.parking-row:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: -15px; /* Between rows */
+    left: 10%;
+    right: 10%;
+    height: 5px; /* Lebar jalan */
+    background: repeating-linear-gradient(
+        to right,
+        #ccc,
+        #ccc 10px,
+        transparent 10px,
+        transparent 20px
+    );
+    z-index: 1;
+}
+
+
+.slot-item {
+    width: 120px; /* Ukuran slot yang lebih besar */
+    height: 120px;
+    border: 3px solid #bbb;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.2em;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px var(--shadow-light);
+    overflow: hidden; /* Pastikan konten tidak meluber */
+}
+
+.slot-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px var(--shadow-medium);
+}
+
+.slot-id-label {
+    margin-bottom: 8px;
+    z-index: 2; /* Pastikan di atas overlay */
+    background-color: rgba(255,255,255,0.7);
+    padding: 3px 8px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+/* Slot status colors */
+.slot-kosong {
+    background-color: #EAF7ED;
+    border-color: var(--status-success);
+    color: var(--status-success);
+}
+.slot-terisi {
+    background-color: #FDECEC;
+    border-color: var(--status-danger);
+    color: var(--status-danger);
+}
+.slot-rusak {
+    background-color: #FFF8E6;
+    border-color: var(--status-warning);
+    color: var(--status-warning);
+}
+.slot-tidak-ada {
+    background-color: #F0F4F7;
+    border-color: var(--status-neutral);
+    color: var(--status-neutral);
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Edit controls for parking slots */
+.edit-slot-controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.98); /* Hampir putih transparan */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    gap: 10px;
+    z-index: 10;
+    opacity: 0; /* Hidden by default */
+    pointer-events: none; /* Disable interaction when hidden */
+    transition: opacity 0.3s ease;
+    border-radius: 12px; /* Ikuti border-radius slot */
+}
+
+.edit-slot-controls select {
+    width: 90%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+    font-size: 0.95em;
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px var(--shadow-light);
+}
+.edit-slot-controls select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+
+.edit-slot-controls .delete-slot-btn {
+    background-color: var(--status-danger);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    width: 90%;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.edit-slot-controls .delete-slot-btn:hover {
+    background-color: #C13333;
+    transform: none; /* No vertical transform on this specific button hover */
+}
+
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+    .dashboard-layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 15px 0;
+        box-shadow: 0 2px 10px var(--shadow-medium);
+        position: relative; /* For absolute positioning of header */
+    }
+
+    .sidebar-header {
+        margin-bottom: 20px;
+        padding: 0 20px;
+    }
+    .sidebar-header h2 {
+        font-size: 1.8em;
+    }
+
+    .sidebar nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 10px;
+    }
+
+    .sidebar nav ul li {
+        margin: 5px 8px;
+    }
+
+    .sidebar nav ul li a {
+        padding: 10px 15px;
+        font-size: 0.95em;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    .sidebar nav ul li a.active::before {
+        display: none; /* Remove left bar for mobile */
+    }
+    .sidebar nav ul li a.active {
+        border-bottom: 3px solid var(--primary-color);
+        background-color: rgba(74, 144, 226, 0.2);
+    }
+    .sidebar nav ul li a i {
+        margin-right: 8px;
+    }
+
+    .sidebar-footer {
+        display: none; /* Hide footer on smaller screens */
+    }
+
+    .main-content {
+        padding: 25px;
+    }
+
+    .header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding: 20px;
+    }
+
+    .header-bar h1 {
+        font-size: 2.2em;
+        margin-bottom: 10px;
+    }
+
+    .user-profile {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .user-email {
+        font-size: 1em;
+        margin-right: 0;
+    }
+    .logout-button {
+        padding: 8px 15px;
+        font-size: 0.9em;
+        width: auto;
+    }
+
+    .content-section {
+        padding: 25px;
+    }
+
+    .content-section h2 {
+        font-size: 1.8em;
+        margin-bottom: 25px;
+    }
+
+    /* Responsive tables */
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    tr {
+        border: 1px solid var(--border-color);
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px var(--shadow-light);
+    }
+
+    td {
+        border: none;
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
+        padding-left: 55%; /* More space for pseudo-element label */
+        text-align: right;
+    }
+
+    td:last-child {
+        border-bottom: none;
+    }
+
+    td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 0;
+        width: 50%;
+        padding-left: 15px;
+        font-weight: 600;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: var(--text-primary);
+    }
+
+    /* Action buttons in responsive table */
+    .edit-btn, .save-btn, .cancel-btn, .delete-btn {
+        width: calc(50% - 6px); /* Adjusted for gap */
+        margin-right: 0; /* Remove specific margin for flex wrap */
+        margin-bottom: 0; /* Remove specific margin for flex wrap */
+    }
+    td[data-label="Aksi"] {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px; /* Space between buttons */
+        justify-content: flex-end;
+    }
+
+    /* Responsive Parking Map */
+    .parking-map-legend {
+        gap: 10px;
+        padding: 10px;
+        justify-content: center;
+    }
+    .legend-item {
+        font-size: 0.9em;
+        gap: 6px;
+    }
+    .legend-color-box {
+        width: 18px;
+        height: 18px;
+    }
+
+    .parking-map-grid {
+        padding: 20px;
+        gap: 15px;
+    }
+
+    .parking-row {
+        gap: 10px;
+        padding: 10px;
+    }
+    .parking-row::after {
+        bottom: -10px;
+        height: 3px;
+    }
+
+    .slot-item {
+        width: 100px; /* Slightly smaller slots */
+        height: 100px;
+        font-size: 1.1em;
+        border-width: 2px;
+    }
+    .edit-slot-controls {
+        padding: 8px;
+        gap: 8px;
+    }
+    .edit-slot-controls select {
+        padding: 8px;
+        font-size: 0.9em;
+    }
+    .edit-slot-controls .delete-slot-btn {
+        padding: 7px 12px;
+        font-size: 0.8em;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        font-size: 15px;
+    }
+    .login-container {
+        padding: 30px;
+    }
+    .login-container h2 {
+        font-size: 2em;
+    }
+    button {
+        padding: 12px 25px;
+        font-size: 1em;
+    }
+
+    .header-bar h1 {
+        font-size: 1.8em;
+    }
+    .user-email {
+        font-size: 0.9em;
+    }
+    .logout-button {
+        font-size: 0.85em;
+        padding: 6px 12px;
+    }
+
+    .sidebar nav ul {
+        flex-direction: column; /* Stack navigation links */
+        align-items: center;
+        gap: 5px;
+    }
+    .sidebar nav ul li {
+        width: 90%;
+        text-align: center;
+    }
+    .sidebar nav ul li a {
+        justify-content: center; /* Center content in stacked nav */
+    }
+
+    .content-section h2 {
+        font-size: 1.6em;
+    }
+
+    td {
+        padding-left: 45%; /* Adjust for very small screens */
+    }
+    td:before {
+        width: 40%;
+        padding-left: 10px;
+    }
+    .edit-btn, .save-btn, .cancel-btn, .delete-btn {
+        width: 100%; /* Full width for action buttons on smallest screens */
+        margin-right: 0;
+    }
+
+    .parking-map-legend {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .legend-item {
+        width: 100%;
+        justify-content: center;
+    }
+    .parking-map-grid {
+        padding: 15px;
+        gap: 10px;
+    }
+    .parking-row {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px;
+    }
+    .slot-item {
+        width: 80px;
+        height: 80px;
+        font-size: 1em;
+    }
+    .edit-slot-controls {
+        padding: 5px;
+        gap: 5px;
+    }
+    .edit-slot-controls select {
+        padding: 6px;
+        font-size: 0.8em;
+    }
+    .edit-slot-controls .delete-slot-btn {
+        padding: 5px 10px;
+        font-size: 0.75em;
+    }
+}

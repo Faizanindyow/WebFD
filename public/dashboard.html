@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Smart Parking System</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-cogs"></i> Admin Panel</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" id="nav-bookings" class="active"><i class="fas fa-calendar-check"></i> Bookings</a></li>
+                    <li><a href="#" id="nav-detections"><i class="fas fa-car-alt"></i> Deteksi Kendaraan</a></li>
+                    <li><a href="#" id="nav-slots"><i class="fas fa-parking"></i> Status Slot</a></li>
+                    <li><a href="#" id="nav-transactions"><i class="fas fa-exchange-alt"></i> Transaksi</a></li>
+                    <li><a href="#" id="nav-users"><i class="fas fa-users"></i> Pengguna</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <p>&copy; 2024 Smart Parking</p>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header-bar">
+                <h1 id="pageTitle">Dashboard Overview</h1>
+                <div class="user-profile">
+                    <span id="userEmailDisplay" class="user-email">Memuat...</span>
+                    <button id="logoutButton" class="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </div>
+
+            <div id="dashboardContent">
+                <div id="bookingsPage" class="content-section">
+                    <h2>Reservasi Parkir (Bookings)</h2>
+                    <div class="table-responsive">
+                        <div id="bookingsTableContainer">
+                            <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat booking...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="detectionsPage" class="content-section" style="display:none;">
+                    <h2>Data Kendaraan Masuk (Detections)</h2>
+                    <div class="table-responsive">
+                        <div id="detectionsTableContainer">
+                            <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat data deteksi...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="slotsPage" class="content-section" style="display:none;">
+                    <h2>Status Slot Parkir (Slots)</h2>
+                    <div class="parking-map-legend">
+                        <span class="legend-item slot-kosong"><span class="legend-color-box"></span>Kosong</span>
+                        <span class="legend-item slot-terisi"><span class="legend-color-box"></span>Terisi</span>
+                        <span class="legend-item slot-rusak"><span class="legend-color-box"></span>Rusak</span>
+                        <span class="legend-item slot-tidak-ada"><span class="legend-color-box"></span>Tidak Ada Data</span>
+                    </div>
+                    <div id="parking-map-container" class="parking-map-grid">
+                        <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat peta parkir...</p>
+                    </div>
+                </div>
+
+                <div id="transactionsPage" class="content-section" style="display:none;">
+                    <h2>Transaksi (Transactions)</h2>
+                    <div class="table-responsive">
+                        <div id="transactionsTableContainer">
+                            <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat data transaksi...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="usersPage" class="content-section" style="display:none;">
+                    <h2>Data Pengguna (Users)</h2>
+                    <div class="table-responsive">
+                        <div id="usersTableContainer">
+                            <p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat data pengguna...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
+    <script src="/firebase-config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+
+            const logoutButton = document.getElementById('logoutButton');
+            const userEmailDisplay = document.getElementById('userEmailDisplay');
+            const pageTitle = document.getElementById('pageTitle');
+
+            const bookingsTableContainer = document.getElementById('bookingsTableContainer');
+            const detectionsTableContainer = document.getElementById('detectionsTableContainer');
+            const parkingMapContainer = document.getElementById('parking-map-container');
+            const transactionsTableContainer = document.getElementById('transactionsTableContainer');
+            const usersTableContainer = document.getElementById('usersTableContainer');
+
+            const bookingsPage = document.getElementById('bookingsPage');
+            const detectionsPage = document.getElementById('detectionsPage');
+            const slotsPage = document.getElementById('slotsPage');
+            const transactionsPage = document.getElementById('transactionsPage');
+            const usersPage = document.getElementById('usersPage');
+
+            const navBookings = document.getElementById('nav-bookings');
+            const navDetections = document.getElementById('nav-detections');
+            const navSlots = document.getElementById('nav-slots');
+            const navTransactions = document.getElementById('nav-transactions');
+            const navUsers = document.getElementById('nav-users');
+
+            const ALLOWED_ADMIN_EMAIL = 'adminf@gmail.com'; // Sesuaikan dengan email admin Anda
+
+            // --- Navigasi Halaman ---
+            const allNavLinks = document.querySelectorAll('.sidebar nav ul li a');
+            const allPageSections = document.querySelectorAll('.content-section');
+
+            function showPage(pageId, title) {
+                allPageSections.forEach(page => {
+                    page.style.display = 'none';
+                });
+                document.getElementById(pageId).style.display = 'block';
+                pageTitle.textContent = title;
+            }
+
+            function setActiveNav(activeLinkId) {
+                allNavLinks.forEach(link => {
+                    link.classList.remove('active');
+                });
+                document.getElementById(activeLinkId).classList.add('active');
+            }
+
+            navBookings.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('bookingsPage', 'Bookings Overview');
+                setActiveNav('nav-bookings');
+                loadBookings();
+            });
+            navDetections.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('detectionsPage', 'Deteksi Kendaraan');
+                setActiveNav('nav-detections');
+                loadDetections();
+            });
+            navSlots.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('slotsPage', 'Status Slot Parkir');
+                setActiveNav('nav-slots');
+                loadSlots(); // Memuat peta parkir
+            });
+            navTransactions.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('transactionsPage', 'Data Transaksi');
+                setActiveNav('nav-transactions');
+                loadTransactions();
+            });
+            navUsers.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('usersPage', 'Data Pengguna');
+                setActiveNav('nav-users');
+                loadUsers();
+            });
+
+
+            // --- Autentikasi dan Proteksi Rute ---
+            if (logoutButton) {
+                logoutButton.addEventListener('click', () => {
+                    auth.signOut().then(() => {
+                        window.location.href = '/index.html';
+                    }).catch((error) => {
+                        console.error("Error logging out:", error);
+                        alert("Gagal logout. Mohon coba lagi.");
+                    });
+                });
+            }
+
+            auth.onAuthStateChanged(user => {
+                if (!user) {
+                    window.location.href = '/index.html';
+                } else {
+                    if (user.email === ALLOWED_ADMIN_EMAIL) {
+                        console.log("Admin di dashboard:", user.email);
+                        if (userEmailDisplay) {
+                            userEmailDisplay.textContent = user.email;
+                        }
+                        showPage('bookingsPage', 'Bookings Overview');
+                        setActiveNav('nav-bookings');
+                        loadBookings();
+                    } else {
+                        console.warn("Non-admin user attempted to access dashboard:", user.email);
+                        alert("Akses ditolak. Anda bukan admin. Anda akan diarahkan kembali ke halaman login.");
+                        auth.signOut();
+                        window.location.href = '/index.html';
+                    }
+                }
+            });
+
+            // --- Fungsi Pembantu untuk Format Timestamp Firestore ---
+            function formatFirestoreTimestamp(timestamp) {
+                if (timestamp && typeof timestamp.toDate === 'function') {
+                    return timestamp.toDate().toLocaleString('id-ID', {
+                        year: 'numeric', month: 'numeric', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    });
+                }
+                return 'N/A';
+            }
+
+            // --- Fungsi untuk Memuat dan Menampilkan Data Bookings (Reservasi) ---
+            function loadBookings() {
+                const bookingsCollection = db.collection('bookings');
+                bookingsTableContainer.innerHTML = '<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat booking...</p>';
+
+                bookingsCollection.onSnapshot(snapshot => {
+                    let tableHTML = '<table>';
+                    tableHTML += `
+                        <thead>
+                            <tr>
+                                <th>ID Booking</th>
+                                <th>UID Pengguna</th>
+                                <th>Slot</th>
+                                <th>Waktu Masuk</th>
+                                <th>Waktu Keluar</th>
+                                <th>Status</th>
+                                <th>Valid?</th>
+                                <th>WA</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+                    if (!snapshot.empty) {
+                        snapshot.forEach(doc => {
+                            const bookingId = doc.id;
+                            const book = doc.data();
+                            const statusClass = `status-${(book.status || '').toLowerCase().replace(/\s/g, '')}`;
+
+                            tableHTML += `
+                                <tr data-id="${bookingId}">
+                                    <td data-label="ID Booking">${bookingId}</td>
+                                    <td data-label="UID Pengguna">${book.uid || 'N/A'}</td>
+                                    <td data-label="Slot">${book.slot || 'N/A'}</td>
+                                    <td data-label="Waktu Masuk">${formatFirestoreTimestamp(book.time)}</td>
+                                    <td data-label="Waktu Keluar">${formatFirestoreTimestamp(book.exitTime)}</td>
+                                    <td data-label="Status" class="${statusClass}">
+                                        <span class="view-mode">${book.status || 'N/A'}</span>
+                                        <select class="edit-mode" style="display:none;" data-field="status">
+                                            <option value="pending" ${book.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                            <option value="active" ${book.status === 'active' ? 'selected' : ''}>Active</option>
+                                            <option value="done" ${book.status === 'done' ? 'selected' : ''}>Done</option>
+                                            <option value="cancelled" ${book.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                        </select>
+                                    </td>
+                                    <td data-label="Valid?">
+                                        <span class="view-mode">${book.isValid ? 'Ya' : 'Tidak'}</span>
+                                        <select class="edit-mode" style="display:none;" data-field="isValid">
+                                            <option value="true" ${book.isValid === true ? 'selected' : ''}>Ya</option>
+                                            <option value="false" ${book.isValid === false ? 'selected' : ''}>Tidak</option>
+                                        </select>
+                                    </td>
+                                    <td data-label="WA">${book.wa || 'N/A'}</td>
+                                    <td data-label="Aksi">
+                                        <button class="edit-btn">Edit</button>
+                                        <button class="save-btn" style="display:none;">Simpan</button>
+                                        <button class="cancel-btn" style="display:none;">Batal</button>
+                                        <button class="delete-btn">Hapus</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tableHTML += '<tr><td colspan="9">Tidak ada booking ditemukan.</td></tr>';
+                    }
+                    tableHTML += '</tbody></table>';
+                    bookingsTableContainer.innerHTML = tableHTML;
+
+                    addBookingEventListeners();
+                }, err => {
+                    console.error("Error getting bookings:", err);
+                    bookingsTableContainer.innerHTML = '<p class="error-message">Gagal memuat booking. Silakan periksa koneksi atau aturan Firestore Anda.</p>';
+                });
+            }
+
+            // --- Fungsi untuk Memuat dan Menampilkan Data Detections (Kendaraan Masuk) ---
+            function loadDetections() {
+                const detectionsCollection = db.collection('detections');
+                detectionsTableContainer.innerHTML = '<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat data deteksi...</p>';
+
+                detectionsCollection.orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                    let tableHTML = '<table>';
+                    tableHTML += `
+                        <thead>
+                            <tr>
+                                <th>ID Deteksi</th>
+                                <th>Timestamp</th>
+                                <th>Plat Nomor</th>
+                                <th>Tipe Mobil</th>
+                                <th>Gambar</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+                    if (!snapshot.empty) {
+                        snapshot.forEach(doc => {
+                            const detectionId = doc.id;
+                            const det = doc.data();
+
+                            const plateNumber = det.plate_text || 'N/A';
+                            let carType = 'N/A';
+                            if (det.car_labels && det.car_labels.length > 0) {
+                                carType = det.car_labels[0].split('(')[0].trim();
+                            }
+
+                            tableHTML += `
+                                <tr data-id="${detectionId}">
+                                    <td data-label="ID Deteksi">${detectionId}</td>
+                                    <td data-label="Timestamp">${formatFirestoreTimestamp(det.timestamp)}</td>
+                                    <td data-label="Plat Nomor">
+                                        <span class="view-mode">${plateNumber}</span>
+                                        <input type="text" class="edit-mode" style="display:none;" data-field="plate_text" value="${plateNumber === 'N/A' ? '' : plateNumber}">
+                                    </td>
+                                    <td data-label="Tipe Mobil">
+                                        <span class="view-mode">${carType}</span>
+                                        <input type="text" class="edit-mode" style="display:none;" data-field="car_labels" value="${carType === 'N/A' ? '' : carType}">
+                                    </td>
+                                    <td data-label="Gambar">${det.image_url ? `<a href="${det.image_url}" target="_blank" class="view-image-link">Lihat Gambar</a>` : 'N/A'}</td>
+                                    <td data-label="Aksi">
+                                        <button class="edit-btn">Edit</button>
+                                        <button class="save-btn" style="display:none;">Simpan</button>
+                                        <button class="cancel-btn" style="display:none;">Batal</button>
+                                        <button class="delete-btn">Hapus</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tableHTML += '<tr><td colspan="6">Tidak ada data deteksi ditemukan.</td></tr>';
+                    }
+                    tableHTML += '</tbody></table>';
+                    detectionsTableContainer.innerHTML = tableHTML;
+
+                    addDetectionEventListeners();
+                }, err => {
+                    console.error("Error getting detections:", err);
+                    detectionsTableContainer.innerHTML = '<p class="error-message">Gagal memuat deteksi. Silakan periksa koneksi atau aturan Firestore Anda.</p>';
+                });
+            }
+
+            // --- Fungsi untuk Memuat dan Menampilkan Data Slots dalam Format Peta Interaktif ---
+            function loadSlots() {
+                const slotsCollection = db.collection('slots');
+                parkingMapContainer.innerHTML = '<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat peta parkir...</p>';
+
+                slotsCollection.onSnapshot(snapshot => {
+                    let mapHTML = '<div class="parking-area">';
+                    // Anda bisa menyesuaikan jumlah baris dan kolom sesuai layout parkir Anda.
+                    // Contoh: area parkir dengan baris A, B, C dan masing-masing 5 slot.
+                    const rows = ['A', 'B', 'C'];
+                    const cols = 5;
+
+                    const slotsDataMap = {};
+                    snapshot.forEach(doc => {
+                        slotsDataMap[doc.id] = doc.data();
+                    });
+
+                    for (const row of rows) {
+                        mapHTML += `<div class="parking-row row-${row}">`; // Menggunakan kelas `parking-row`
+                        for (let i = 1; i <= cols; i++) {
+                            const slotId = `${row}${i}`;
+                            const slotData = slotsDataMap[slotId] || { status: 'tidak-ada' };
+                            const statusClass = `slot-${(slotData.status || 'tidak-ada').toLowerCase().replace(/\s/g, '')}`;
+
+                            mapHTML += `
+                                <div class="slot-item ${statusClass}" data-slot-id="${slotId}">
+                                    <span class="slot-id-label">${slotId}</span>
+                                    <div class="edit-slot-controls">
+                                        <select data-slot-id="${slotId}" class="status-dropdown">
+                                            <option value="kosong" ${slotData.status === 'kosong' ? 'selected' : ''}>Kosong</option>
+                                            <option value="terisi" ${slotData.status === 'terisi' ? 'selected' : ''}>Terisi</option>
+                                            <option value="rusak" ${slotData.status === 'rusak' ? 'selected' : ''}>Rusak</option>
+                                        </select>
+                                        <button class="delete-slot-btn" data-slot-id="${slotId}"><i class="fas fa-trash-alt"></i> Hapus</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        mapHTML += '</div>';
+                    }
+                    mapHTML += '</div>';
+                    parkingMapContainer.innerHTML = mapHTML;
+                    addSlotMapEventListeners();
+                }, err => {
+                    console.error("Error getting slots:", err);
+                    parkingMapContainer.innerHTML = '<p class="error-message">Gagal memuat status slot. Silakan periksa koneksi atau aturan Firestore Anda.</p>';
+                });
+            }
+
+            // --- Fungsi untuk Menambahkan Event Listener ke Setiap Slot di Peta ---
+            function addSlotMapEventListeners() {
+                parkingMapContainer.querySelectorAll('.slot-item').forEach(slot => {
+                    slot.addEventListener('click', (event) => {
+                        if (event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON' || event.target.closest('.edit-slot-controls')) {
+                            return; // Jangan menutup jika klik di dalam kontrol itu sendiri
+                        }
+
+                        const controls = slot.querySelector('.edit-slot-controls');
+                        // Sembunyikan semua kontrol yang sedang terbuka terlebih dahulu
+                        parkingMapContainer.querySelectorAll('.edit-slot-controls').forEach(ctrl => {
+                            if (ctrl !== controls) {
+                                ctrl.style.opacity = '0';
+                                ctrl.style.pointerEvents = 'none'; // Nonaktifkan interaksi
+                            }
+                        });
+
+                        // Toggle display untuk kontrol slot yang diklik
+                        if (controls.style.opacity === '1') {
+                            controls.style.opacity = '0';
+                            controls.style.pointerEvents = 'none';
+                        } else {
+                            controls.style.opacity = '1';
+                            controls.style.pointerEvents = 'auto'; // Aktifkan interaksi
+                        }
+                    });
+                });
+
+                parkingMapContainer.querySelectorAll('.status-dropdown').forEach(dropdown => {
+                    dropdown.addEventListener('change', async (event) => {
+                        const slotId = event.target.dataset.slotId;
+                        const newStatus = event.target.value;
+                        try {
+                            await db.collection('slots').doc(slotId).update({ status: newStatus });
+                            console.log(`Slot ${slotId} updated to ${newStatus}`);
+                            event.target.closest('.edit-slot-controls').style.opacity = '0';
+                            event.target.closest('.edit-slot-controls').style.pointerEvents = 'none';
+                        } catch (error) {
+                            console.error("Error updating slot:", error);
+                            alert("Gagal memperbarui status slot: " + error.message);
+                        }
+                    });
+                });
+
+                parkingMapContainer.querySelectorAll('.delete-slot-btn').forEach(button => {
+                    button.addEventListener('click', async (event) => {
+                        const slotId = event.target.dataset.slotId;
+                        if (confirm(`Anda yakin ingin menghapus slot ${slotId}? Ini tidak dapat dibatalkan.`)) {
+                            try {
+                                await db.collection('slots').doc(slotId).delete();
+                                console.log(`Slot ${slotId} deleted.`);
+                            } catch (error) {
+                                console.error("Error deleting slot:", error);
+                                alert("Gagal menghapus slot: " + error.message);
+                            }
+                        }
+                        event.target.closest('.edit-slot-controls').style.opacity = '0';
+                        event.target.closest('.edit-slot-controls').style.pointerEvents = 'none';
+                    });
+                });
+            }
+
+            // --- Fungsi untuk Memuat dan Menampilkan Data Transactions ---
+            function loadTransactions() {
+                const transactionsCollection = db.collection('transactions');
+                transactionsTableContainer.innerHTML = '<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat data transaksi...</p>';
+
+                transactionsCollection.orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                    let tableHTML = '<table>';
+                    tableHTML += `
+                        <thead>
+                            <tr>
+                                <th>ID Transaksi</th>
+                                <th>Booking ID</th>
+                                <th>Jumlah</th>
+                                <th>Metode Pembayaran</th>
+                                <th>Status</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+                    if (!snapshot.empty) {
+                        snapshot.forEach(doc => {
+                            const transactionId = doc.id;
+                            const trans = doc.data();
+                            tableHTML += `
+                                <tr>
+                                    <td data-label="ID Transaksi">${transactionId}</td>
+                                    <td data-label="Booking ID">${trans.booking_id || 'N/A'}</td>
+                                    <td data-label="Jumlah">${trans.amount ? `Rp ${trans.amount.toLocaleString('id-ID')}` : 'N/A'}</td>
+                                    <td data-label="Metode Pembayaran">${trans.payment_method || 'N/A'}</td>
+                                    <td data-label="Status">${trans.status || 'N/A'}</td>
+                                    <td data-label="Timestamp">${formatFirestoreTimestamp(trans.timestamp)}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tableHTML += '<tr><td colspan="6">Tidak ada data transaksi ditemukan.</td></tr>';
+                    }
+                    tableHTML += '</tbody></table>';
+                    transactionsTableContainer.innerHTML = tableHTML;
+                }, err => {
+                    console.error("Error getting transactions:", err);
+                    transactionsTableContainer.innerHTML = '<p class="error-message">Gagal memuat transaksi. Silakan periksa koneksi atau aturan Firestore Anda.</p>';
+                });
+            }
+
+            // --- Fungsi untuk Memuat dan Menampilkan Data Users ---
+            function loadUsers() {
+                const usersCollection = db.collection('users');
+                usersTableContainer.innerHTML = '<p class="loading-message"><i class="fas fa-spinner fa-spin"></i> Memuat data pengguna...</p>';
+
+                usersCollection.onSnapshot(snapshot => {
+                    let tableHTML = '<table>';
+                    tableHTML += `
+                        <thead>
+                            <tr>
+                                <th>UID</th>
+                                <th>Email</th>
+                                <th>Nama</th>
+                                <th>Nomor WA</th>
+                                <th>Tanggal Bergabung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+                    if (!snapshot.empty) {
+                        snapshot.forEach(doc => {
+                            const userId = doc.id;
+                            const user = doc.data();
+                            tableHTML += `
+                                <tr>
+                                    <td data-label="UID">${userId}</td>
+                                    <td data-label="Email">${user.email || 'N/A'}</td>
+                                    <td data-label="Nama">${user.name || 'N/A'}</td>
+                                    <td data-label="Nomor WA">${user.whatsapp_number || 'N/A'}</td>
+                                    <td data-label="Tanggal Bergabung">${formatFirestoreTimestamp(user.created_at)}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tableHTML += '<tr><td colspan="5">Tidak ada data pengguna ditemukan.</td></tr>';
+                    }
+                    tableHTML += '</tbody></table>';
+                    usersTableContainer.innerHTML = tableHTML;
+                }, err => {
+                    console.error("Error getting users:", err);
+                    usersTableContainer.innerHTML = '<p class="error-message">Gagal memuat pengguna. Silakan periksa koneksi atau aturan Firestore Anda.</p>';
+                });
+            }
+
+            // Fungsi event listener untuk Bookings
+            function addBookingEventListeners() {
+                bookingsTableContainer.querySelectorAll('.edit-btn').forEach(button => {
+                    button.onclick = (event) => {
+                        const row = event.target.closest('tr');
+                        row.classList.add('edit-mode');
+                        row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
+                        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'inline-block');
+                        event.target.style.display = 'none';
+                        row.querySelector('.save-btn').style.display = 'inline-block';
+                        row.querySelector('.cancel-btn').style.display = 'inline-block';
+                        row.querySelector('.delete-btn').style.display = 'none';
+                    };
+                });
+
+                bookingsTableContainer.querySelectorAll('.cancel-btn').forEach(button => {
+                    button.onclick = (event) => {
+                        const row = event.target.closest('tr');
+                        row.classList.remove('edit-mode');
+                        row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'inline-block');
+                        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+                        row.querySelector('.edit-btn').style.display = 'inline-block';
+                        event.target.style.display = 'none';
+                        row.querySelector('.save-btn').style.display = 'none';
+                        row.querySelector('.delete-btn').style.display = 'inline-block';
+                    };
+                });
+
+                bookingsTableContainer.querySelectorAll('.save-btn').forEach(button => {
+                    button.onclick = async (event) => {
+                        const row = event.target.closest('tr');
+                        const bookingId = row.dataset.id;
+                        const newStatus = row.querySelector('select[data-field="status"]').value;
+                        const newIsValid = row.querySelector('select[data-field="isValid"]').value === 'true';
+
+                        try {
+                            await db.collection('bookings').doc(bookingId).update({
+                                status: newStatus,
+                                isValid: newIsValid
+                            });
+                            alert('Booking berhasil diperbarui!');
+                            console.log(`Booking ${bookingId} diperbarui: Status=${newStatus}, IsValid=${newIsValid}`);
+
+                            row.classList.remove('edit-mode');
+                            row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'inline-block');
+                            row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+                            row.querySelector('.edit-btn').style.display = 'inline-block';
+                            event.target.style.display = 'none';
+                            row.querySelector('.cancel-btn').style.display = 'none';
+                            row.querySelector('.delete-btn').style.display = 'inline-block';
+
+                        } catch (error) {
+                            console.error("Error updating booking:", error);
+                            alert('Gagal memperbarui booking: ' + error.message);
+                        }
+                    };
+                });
+
+                bookingsTableContainer.querySelectorAll('.delete-btn').forEach(button => {
+                    button.onclick = async (event) => {
+                        const row = event.target.closest('tr');
+                        const bookingId = row.dataset.id;
+
+                        if (confirm(`Anda yakin ingin menghapus booking dengan ID: ${bookingId}? Data yang dihapus tidak dapat dikembalikan.`)) {
+                            try {
+                                await db.collection('bookings').doc(bookingId).delete();
+                                alert('Booking berhasil dihapus!');
+                                console.log(`Booking ${bookingId} deleted successfully.`);
+                            } catch (error) {
+                                console.error("Error deleting booking:", error);
+                                alert('Gagal menghapus booking: ' + error.message);
+                            }
+                        }
+                    };
+                });
+            }
+
+            // Fungsi event listener untuk Detections
+            function addDetectionEventListeners() {
+                detectionsTableContainer.querySelectorAll('.edit-btn').forEach(button => {
+                    button.onclick = (event) => {
+                        const row = event.target.closest('tr');
+                        row.classList.add('edit-mode');
+                        row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'none');
+                        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'inline-block');
+                        event.target.style.display = 'none';
+                        row.querySelector('.save-btn').style.display = 'inline-block';
+                        row.querySelector('.cancel-btn').style.display = 'inline-block';
+                        row.querySelector('.delete-btn').style.display = 'none';
+                    };
+                });
+
+                detectionsTableContainer.querySelectorAll('.cancel-btn').forEach(button => {
+                    button.onclick = (event) => {
+                        const row = event.target.closest('tr');
+                        row.classList.remove('edit-mode');
+                        row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'inline-block');
+                        row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+                        row.querySelector('.edit-btn').style.display = 'inline-block';
+                        event.target.style.display = 'none';
+                        row.querySelector('.save-btn').style.display = 'none';
+                        row.querySelector('.delete-btn').style.display = 'inline-block';
+                    };
+                });
+
+                detectionsTableContainer.querySelectorAll('.save-btn').forEach(button => {
+                    button.onclick = async (event) => {
+                        const row = event.target.closest('tr');
+                        const detectionId = row.dataset.id;
+                        const newPlateText = row.querySelector('input[data-field="plate_text"]').value;
+                        const newCarLabel = row.querySelector('input[data-field="car_labels"]').value;
+
+                        try {
+                            await db.collection('detections').doc(detectionId).update({
+                                plate_text: newPlateText,
+                                car_labels: [newCarLabel]
+                            });
+                            alert('Data Deteksi berhasil diperbarui!');
+                            console.log(`Deteksi ${detectionId} diperbarui: PlateText=${newPlateText}, CarLabel=${newCarLabel}`);
+
+                            row.classList.remove('edit-mode');
+                            row.querySelectorAll('.view-mode').forEach(el => el.style.display = 'inline-block');
+                            row.querySelectorAll('.edit-mode').forEach(el => el.style.display = 'none');
+                            row.querySelector('.edit-btn').style.display = 'inline-block';
+                            event.target.style.display = 'none';
+                            row.querySelector('.cancel-btn').style.display = 'none';
+                            row.querySelector('.delete-btn').style.display = 'inline-block';
+
+                        } catch (error) {
+                            console.error("Error updating detection:", error);
+                            alert('Gagal memperbarui deteksi: ' + error.message);
+                        }
+                    };
+                });
+
+                detectionsTableContainer.querySelectorAll('.delete-btn').forEach(button => {
+                    button.onclick = async (event) => {
+                        const row = event.target.closest('tr');
+                        const detectionId = row.dataset.id;
+
+                        if (confirm(`Anda yakin ingin menghapus deteksi dengan ID: ${detectionId}? Data yang dihapus tidak dapat dikembalikan.`)) {
+                            try {
+                                await db.collection('detections').doc(detectionId).delete();
+                                alert('Deteksi berhasil dihapus!');
+                                console.log(`Deteksi ${detectionId} deleted successfully.`);
+                            } catch (error) {
+                                console.error("Error deleting detection:", error);
+                                alert('Gagal menghapus deteksi: ' + error.message);
+                            }
+                        }
+                    };
+                });
+            }
+
+            // Inisialisasi tampilan awal
+            // Ini sudah di handle oleh `auth.onAuthStateChanged`
+            // showPage('bookingsPage', 'Bookings Overview');
+            // setActiveNav('nav-bookings');
+            // loadBookings();
+        });
+    </script>
+</body>
+</html>
